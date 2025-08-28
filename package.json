@@ -1,0 +1,13 @@
+{
+  "name": "CSC-514",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"pnpm --filter server dev\" \"pnpm --filter CSC-514 dev\"",
+    "build": "pnpm --filter server build && pnpm --filter CSC-514 build",
+    "start": "concurrently \"pnpm --filter server start\" \"pnpm --filter CSC-514 start\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}
