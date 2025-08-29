@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+// Note: Removed Next.js specific imports for compatibility
+// import { useRouter } from "next/navigation" 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -16,7 +17,7 @@ import { Calendar, Trash2 } from "lucide-react"
 type Transaction = {
   id: string
   user_id: string
-  cashiername: string
+  cashier_name: string // Corrected from cashiername
   amount: number
   type: "sale" | "refund" | "void" | "income" | "expense"
   description: string
@@ -30,7 +31,7 @@ type Cashier = {
 }
 
 export default function CashierDashboardPage() {
-  const router = useRouter()
+  // const router = useRouter() // Removed for compatibility
   const [cashier, setCashier] = useState<Cashier | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
@@ -49,23 +50,24 @@ export default function CashierDashboardPage() {
   // Load cashier from localStorage
   useEffect(() => {
     const storedCashier = localStorage.getItem("cashier")
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("cashierToken") // FIXED: Use correct token key
 
     if (!storedCashier || !token) {
-      router.push("/cashier/login")
+      // router.push("/cashier/login") // Removed for compatibility
+      window.location.href = "/cashier/login";
       return
     }
 
     setCashier(JSON.parse(storedCashier))
-  }, [router])
+  }, []) // Removed router from dependency array
 
   // Load transactions
-  const loadTransactions = async () => {
-    if (!cashier) return
+  const loadTransactions = async (currentCashier: Cashier) => {
+    if (!currentCashier) return
     setLoading(true)
     try {
-      const token = localStorage.getItem("token")
-      const res = await fetch(`${API_BASE}/api/transactions/${cashier.id}`, {
+      const token = localStorage.getItem("cashierToken") // FIXED: Use correct token key
+      const res = await fetch(`${API_BASE}/api/transactions/${currentCashier.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) throw new Error("Failed to fetch transactions")
@@ -80,7 +82,9 @@ export default function CashierDashboardPage() {
   }
 
   useEffect(() => {
-    if (cashier) loadTransactions()
+    if (cashier) {
+        loadTransactions(cashier)
+    }
   }, [cashier])
 
   // Add new transaction
@@ -90,8 +94,14 @@ export default function CashierDashboardPage() {
     setSuccess("")
     setSubmitting(true)
 
+    if (!cashier) {
+        setError("Cashier not loaded. Please refresh the page.");
+        setSubmitting(false);
+        return;
+    }
+
     try {
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("cashierToken") // FIXED: Use correct token key
       const res = await fetch(`${API_BASE}/api/transactions`, {
         method: "POST",
         headers: {
@@ -99,8 +109,8 @@ export default function CashierDashboardPage() {
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          user_id: cashier?.id,
-          cashiername: cashier?.name,
+          user_id: cashier.id,
+          cashier_name: cashier.name, // FIXED: Changed cashiername to cashier_name
           amount: parseFloat(form.amount),
           type: form.type,
           description: form.description,
@@ -109,12 +119,12 @@ export default function CashierDashboardPage() {
 
       if (!res.ok) {
         const { message } = await res.json()
-        throw new Error(message)
+        throw new Error(message || 'Failed to add transaction')
       }
 
       setSuccess("Transaction added successfully")
       setForm({ amount: "", type: "sale", description: "" })
-      loadTransactions()
+      loadTransactions(cashier)
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -124,23 +134,25 @@ export default function CashierDashboardPage() {
 
   // Delete transaction
   const handleDelete = async (id: string) => {
+    if (!cashier) return;
     try {
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("cashierToken") // FIXED: Use correct token key
       const res = await fetch(`${API_BASE}/api/transactions/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       })
       if (!res.ok) throw new Error("Failed to delete transaction")
-      loadTransactions()
+      loadTransactions(cashier)
     } catch (err: any) {
       setError(err.message)
     }
   }
 
-  if (loading) {
+  if (!cashier) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        <p className="ml-4">Loading cashier data...</p>
       </div>
     )
   }
@@ -158,10 +170,10 @@ export default function CashierDashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Transaction History</CardTitle>
-              <CardDescription>All cashier records</CardDescription>
+              <CardDescription>All records for {cashier.name}</CardDescription>
             </CardHeader>
             <CardContent>
-              {transactions.length === 0 ? (
+              {loading ? <p>Loading transactions...</p> : transactions.length === 0 ? (
                 <p className="text-muted-foreground">No transactions yet.</p>
               ) : (
                 <div className="space-y-4">
@@ -213,6 +225,7 @@ export default function CashierDashboardPage() {
                     onChange={(e) =>
                       setForm({ ...form, amount: e.target.value })
                     }
+                    required
                   />
                 </div>
                 <div>
@@ -242,6 +255,7 @@ export default function CashierDashboardPage() {
                     onChange={(e) =>
                       setForm({ ...form, description: e.target.value })
                     }
+                    required
                   />
                 </div>
                 {error && (

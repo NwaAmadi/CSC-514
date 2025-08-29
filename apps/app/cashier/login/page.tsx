@@ -34,11 +34,11 @@ export default function CashierLoginPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.message || 'Login failed')
 
-     
+      console.log('Login response:', data)
       localStorage.setItem('cashierToken', data.token)
       localStorage.setItem('cashier', JSON.stringify(data.cashier))
 
-      
+      console.log('Redirecting to dashboard...')
       router.push('/cashier/dashboard')
     } catch (err: any) {
       setError(err.message)
