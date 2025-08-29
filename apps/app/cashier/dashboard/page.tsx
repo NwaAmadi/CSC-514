@@ -61,9 +61,10 @@ export default function CashierDashboardPage() {
     setLoading(true)
     try {
       const token = localStorage.getItem("cashierToken")
-      const res = await fetch(`${API_BASE}/api/transactions/${currentCashier.id}`, {
+      const res = await fetch(`${API_BASE}/api/transactions`, { 
         headers: { Authorization: `Bearer ${token}` },
       })
+      
       if (!res.ok) throw new Error("Failed to fetch transactions")
       const data = await res.json()
       setTransactions(data)
@@ -168,55 +169,55 @@ export default function CashierDashboardPage() {
 
   if (!cashier) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-        <p className="ml-4 text-lg text-gray-600">Loading Cashier Data...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
+        <p className="ml-4 text-lg text-gray-600 dark:text-slate-400">Loading Cashier Data...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-slate-300"> {/* Dark mode page background and default text */}
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">
         
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Welcome, {cashier.name.split(' ')[0]}!</h1>
-            <p className="text-md text-gray-500">Here is your transaction dashboard for today.</p>
+            <h1 className="text-3xl font-bold text-gray-800 dark:text-slate-50">Welcome, {cashier.name.split(' ')[0]}!</h1>
+            <p className="text-md text-gray-500 dark:text-slate-400">Here is your transaction dashboard for today.</p>
           </div>
-          <Button onClick={handleLogout} variant="outline" className="mt-4 sm:mt-0">
+          <Button onClick={handleLogout} variant="outline" className="mt-4 sm:mt-0 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
         </header>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <StatCard icon={DollarSign} title="Net Balance" value={formatCurrency(stats.balance)} color="text-blue-600" />
-            <StatCard icon={TrendingUp} title="Total Inflow" value={formatCurrency(stats.totalIn)} color="text-green-600" />
-            <StatCard icon={TrendingDown} title="Total Outflow" value={formatCurrency(stats.totalOut)} color="text-red-600" />
+            <StatCard icon={DollarSign} title="Net Balance" value={formatCurrency(stats.balance)} color="text-blue-600 dark:text-blue-400" />
+            <StatCard icon={TrendingUp} title="Total Inflow" value={formatCurrency(stats.totalIn)} color="text-green-600 dark:text-green-400" />
+            <StatCard icon={TrendingDown} title="Total Outflow" value={formatCurrency(stats.totalOut)} color="text-red-600 dark:text-red-500" />
         </div>
 
         <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
           <aside className="lg:col-span-1">
-            <Card className="shadow-sm">
+            <Card className="shadow-sm bg-white dark:bg-slate-800 dark:border-slate-700"> {/* Dark mode card styles */}
               <CardHeader>
-                <CardTitle className="flex items-center text-xl">
-                  <PlusCircle className="w-6 h-6 mr-2 text-blue-600"/>
+                <CardTitle className="flex items-center text-xl text-gray-900 dark:text-slate-100">
+                  <PlusCircle className="w-6 h-6 mr-2 text-blue-600 dark:text-blue-400"/>
                   New Transaction
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="amount">Amount</Label>
-                    <Input id="amount" type="number" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required placeholder="0.00" />
+                    <Label htmlFor="amount" className="dark:text-slate-400">Amount</Label>
+                    <Input id="amount" type="number" step="0.01" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} required placeholder="0.00" className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-50"/>
                   </div>
                   <div>
-                    <Label htmlFor="type">Type</Label>
+                    <Label htmlFor="type" className="dark:text-slate-400">Type</Label>
                     <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v as Transaction["type"] })}>
-                      <SelectTrigger id="type"><SelectValue placeholder="Select type" /></SelectTrigger>
-                      <SelectContent>
+                      <SelectTrigger id="type" className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-50"><SelectValue placeholder="Select type" /></SelectTrigger>
+                      <SelectContent className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300">
                         <SelectItem value="sale">Sale</SelectItem>
                         <SelectItem value="income">Income</SelectItem>
                         <SelectItem value="refund">Refund</SelectItem>
@@ -226,12 +227,12 @@ export default function CashierDashboardPage() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="description">Description</Label>
-                    <Textarea id="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required placeholder="e.g., Customer purchase" />
+                    <Label htmlFor="description" className="dark:text-slate-400">Description</Label>
+                    <Textarea id="description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required placeholder="e.g., Customer purchase" className="dark:bg-slate-700 dark:border-slate-600 dark:text-slate-50" />
                   </div>
                   {error && <Alert variant="destructive"><AlertDescription>{error}</AlertDescription></Alert>}
-                  {success && <Alert variant="default"><AlertDescription>{success}</AlertDescription></Alert>}
-                  <Button type="submit" className="w-full" disabled={submitting}>
+                  {success && <Alert variant="default" className="bg-green-100 dark:bg-green-900/50 border-green-300 dark:border-green-700 text-green-800 dark:text-green-300"><AlertDescription>{success}</AlertDescription></Alert>}
+                  <Button type="submit" className="w-full dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200" disabled={submitting}>
                     {submitting ? "Saving..." : "Add Transaction"}
                   </Button>
                 </form>
@@ -240,17 +241,17 @@ export default function CashierDashboardPage() {
           </aside>
 
           <section className="lg:col-span-2">
-            <Card className="shadow-sm">
+            <Card className="shadow-sm bg-white dark:bg-slate-800 dark:border-slate-700"> {/* Dark mode card styles */}
               <CardHeader>
-                <CardTitle className="text-xl">Transaction History</CardTitle>
-                <CardDescription>A log of all recent financial activities.</CardDescription>
+                <CardTitle className="text-xl text-gray-900 dark:text-slate-100">Transaction History</CardTitle>
+                <CardDescription className="dark:text-slate-400">A log of all recent financial activities.</CardDescription>
               </CardHeader>
               <CardContent>
                 {loading ? (
-                    <div className="text-center py-8 text-gray-500">Loading transactions...</div>
+                    <div className="text-center py-8 text-gray-500 dark:text-slate-400">Loading transactions...</div>
                 ) : transactions.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
-                    <Receipt className="mx-auto h-12 w-12 text-gray-400" />
+                  <div className="text-center py-8 text-gray-500 dark:text-slate-500">
+                    <Receipt className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-600" />
                     <p className="mt-2">No transactions recorded yet.</p>
                   </div>
                 ) : (
@@ -268,18 +269,16 @@ export default function CashierDashboardPage() {
   )
 }
 
-
-
 function StatCard({ icon: Icon, title, value, color }: { icon: React.ElementType, title: string, value: string, color: string }) {
     return (
-        <Card className="shadow-sm">
+        <Card className="shadow-sm bg-white dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="p-6 flex items-center">
-                <div className={`p-3 rounded-full bg-gray-100 mr-4 ${color}`}>
+                <div className={`p-3 rounded-full bg-gray-100 dark:bg-slate-700 mr-4 ${color}`}>
                     <Icon className="h-6 w-6" />
                 </div>
                 <div>
-                    <p className="text-sm font-medium text-gray-500">{title}</p>
-                    <p className="text-2xl font-semibold text-gray-800">{value}</p>
+                    <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{title}</p>
+                    <p className="text-2xl font-semibold text-gray-800 dark:text-slate-50">{value}</p>
                 </div>
             </CardContent>
         </Card>
@@ -289,15 +288,15 @@ function StatCard({ icon: Icon, title, value, color }: { icon: React.ElementType
 function TransactionItem({ tx, onDelete }: { tx: Transaction, onDelete: (id: string) => void }) {
     const isOutflow = tx.type === "refund" || tx.type === "expense";
     return (
-        <div className="border p-4 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center hover:bg-gray-50 transition-colors">
+        <div className="border dark:border-slate-700 p-4 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
             <div className="flex items-center mb-2 sm:mb-0">
-                <div className={`p-2 rounded-full mr-3 ${isOutflow ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
+                <div className={`p-2 rounded-full mr-3 ${isOutflow ? 'bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-500' : 'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400'}`}>
                     {isOutflow ? <TrendingDown className="w-5 h-5" /> : <TrendingUp className="w-5 h-5" />}
                 </div>
                 <div>
-                    <p className="font-semibold text-gray-800">{tx.description}</p>
-                    <div className="flex items-center text-sm text-gray-500 space-x-4">
-                        <Badge variant="outline" className="capitalize">{tx.type}</Badge>
+                    <p className="font-semibold text-gray-800 dark:text-slate-50">{tx.description}</p>
+                    <div className="flex items-center text-sm text-gray-500 dark:text-slate-400 space-x-4">
+                        <Badge variant="outline" className="capitalize dark:border-slate-600 dark:text-slate-400">{tx.type}</Badge>
                         <span>
                             <Calendar className="w-3 h-3 inline mr-1" />
                             {new Date(tx.created_at).toLocaleDateString()}
@@ -306,11 +305,11 @@ function TransactionItem({ tx, onDelete }: { tx: Transaction, onDelete: (id: str
                 </div>
             </div>
             <div className="flex items-center gap-4 mt-2 sm:mt-0 self-end sm:self-center">
-                <p className={`font-semibold text-lg ${isOutflow ? 'text-red-600' : 'text-green-600'}`}>
+                <p className={`font-semibold text-lg ${isOutflow ? 'text-red-600 dark:text-red-500' : 'text-green-600 dark:text-green-400'}`}>
                     {isOutflow ? '-' : '+'}
                     {formatCurrency(tx.amount)}
                 </p>
-                <Button size="icon" variant="ghost" className="text-gray-400 hover:text-red-500" onClick={() => onDelete(tx.id)}>
+                <Button size="icon" variant="ghost" className="text-gray-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-500" onClick={() => onDelete(tx.id)}>
                     <Trash2 className="w-4 h-4" />
                 </Button>
             </div>

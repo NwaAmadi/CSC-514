@@ -22,11 +22,11 @@ export default function Header() {
       <div className="flex items-center gap-4">
         <Link className="flex items-center gap-2 text-lg font-semibold" href="/home">
           <Shield className="w-6 h-6" />
-          <span>Office Accounting</span>
+          <span>Office Accounting System (OASys)</span>
         </Link>
-        <span className="text-sm text-muted-foreground">
+        {/*<span className="text-sm text-muted-foreground">
           {userRole === 'admin' ? 'Admin' : 'Cashier'} Dashboard
-        </span>
+        </span>*/}
       </div>
       <div className="hidden md:flex items-center gap-4">
         <DropdownMenu>
@@ -49,9 +49,9 @@ export default function Header() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button variant="outline" onClick={logout}>
+        {/*<Button variant="outline" onClick={logout}>
           Logout
-        </Button>
+        </Button>*/}
       </div>
       <Sheet>
         <SheetTrigger asChild>

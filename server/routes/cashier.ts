@@ -2,6 +2,7 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { supabase } from "../utils/supabaseClient";
+import { isAdmin } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
@@ -50,7 +51,7 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get('/', async (_req, res) => {
+router.get('/', isAdmin, async (_req, res) => {
   try {
     const { data, error } = await supabase
       .from('cashiers')
@@ -64,7 +65,7 @@ router.get('/', async (_req, res) => {
   }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', isAdmin, async (req, res) => {
   try {
     const { name, email, password } = req.body
     if (!name || !email || !password) {
@@ -97,7 +98,7 @@ router.post('/', async (req, res) => {
 })
 
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', isAdmin, async (req, res) => {
   try {
     const { id } = req.params
     const { error } = await supabase.from('cashiers').delete().eq('id', id)
