@@ -22,7 +22,7 @@ export default function Header() {
       <div className="flex items-center gap-4">
         <Link className="flex items-center gap-2 text-lg font-semibold" href="/home">
           <Shield className="w-6 h-6" />
-          <span>Office Accounting System (OASys)</span>
+          <span>OASys</span>
         </Link>
         {/*<span className="text-sm text-muted-foreground">
           {userRole === 'admin' ? 'Admin' : 'Cashier'} Dashboard
