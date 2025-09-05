@@ -1,25 +1,23 @@
 import express from "express"
 import { supabase } from "../utils/supabaseClient"
+import { isAuth } from "../middleware/authMiddleware";
 
 const router = express.Router()
 
-router.get("/:userId", async (req, res) => {
+router.get("/", isAuth, async (req, res) => {
   try {
-    const { userId } = req.params
     const { data, error } = await supabase
       .from("transactions")
       .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
+      .order("created_at", { ascending: false });
 
-    if (error) throw error
-    res.json(data)
+    if (error) throw error;
+    res.json(data);
   } catch (err: any) {
-    console.error(err)
-    res.status(500).json({ message: err.message })
+    console.error(err);
+    res.status(500).json({ message: err.message });
   }
-})
-
+});
 
 router.post("/", async (req, res) => {
   try {

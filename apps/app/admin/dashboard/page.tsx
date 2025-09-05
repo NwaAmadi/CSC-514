@@ -1,41 +1,43 @@
 'use client'
 
-import type React from 'react'
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Users, Plus, Mail, Trash2, Loader2, CheckCircle2, XCircle } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { Users, Plus, Mail, Trash2, Loader2, CheckCircle2, XCircle, LogOut, DollarSign, TrendingUp, TrendingDown, Receipt } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { Badge } from '@/components/ui/badge'
 
+// --- TYPE DEFINITIONS ---
 interface Cashier {
   id: string
   name: string
   email: string
 }
 
+interface Transaction {
+  id: string
+  cashier_name: string
+  amount: number
+  type: "sale" | "refund" | "void" | "income" | "expense"
+  description: string
+  created_at: string
+}
+
+// --- HELPER FUNCTIONS ---
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'NGN' }).format(amount);
+}
+
+// --- MAIN COMPONENT ---
 export default function AdminDashboardPage() {
   const [cashiers, setCashiers] = useState<Cashier[]>([])
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([])
   const [isAddingCashier, setIsAddingCashier] = useState(false)
   const [formData, setFormData] = useState({ name: '', email: '', password: '' })
+  
   const [isLoading, setIsLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(true)
 
@@ -43,121 +45,151 @@ export default function AdminDashboardPage() {
   const [successMsg, setSuccessMsg] = useState('')
   const [errorOpen, setErrorOpen] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
-
   
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
 
   const API_BASE = 'http://localhost:5000'
 
-  const openError = (msg: string) => {
-    setErrorMsg(msg)
-    setErrorOpen(true)
-  }
-  const openSuccess = (msg: string) => {
-    setSuccessMsg(msg)
-    setSuccessOpen(true)
-  }
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    if (!token) {
+        window.location.href = "/admin/login";
+        return;
+    }
+    fetchAllData(token);
+  }, [])
 
-  const fetchCashiers = async () => {
+  const fetchAllData = async (token: string) => {
+    setIsFetching(true)
     try {
-      setIsFetching(true)
-      const res = await fetch(`${API_BASE}/api/cashier`)
-      if (!res.ok) throw new Error('Failed to fetch cashiers')
-      const data: Cashier[] = await res.json()
-      setCashiers(data)
+      const [cashiersRes, transactionsRes] = await Promise.all([
+        fetch(`${API_BASE}/api/cashier`, { headers: { 'Authorization': `Bearer ${token}` } }),
+        fetch(`${API_BASE}/api/transactions`, { headers: { 'Authorization': `Bearer ${token}` } })
+      ]);
+
+      if (!cashiersRes.ok) throw new Error('Failed to fetch cashiers');
+      if (!transactionsRes.ok) throw new Error('Failed to fetch transactions');
+
+      const cashiersData = await cashiersRes.json();
+      const transactionsData = await transactionsRes.json();
+      
+      setCashiers(cashiersData);
+      setAllTransactions(transactionsData);
+
     } catch (err: any) {
-      openError(err.message || 'Failed to fetch cashiers')
+      openError(err.message || 'Failed to fetch dashboard data');
     } finally {
       setIsFetching(false)
     }
   }
 
-  useEffect(() => {
-    fetchCashiers()
-    
-  }, [])
+  const handleLogout = () => {
+    localStorage.removeItem("adminToken");
+    window.location.href = "/admin/login";
+  }
 
+  // --- STATS CALCULATION ---
+  const stats = useMemo(() => {
+    const totalIn = allTransactions
+      .filter(tx => tx.type === "sale" || tx.type === "income")
+      .reduce((acc, tx) => acc + tx.amount, 0);
+
+    const totalOut = allTransactions
+      .filter(tx => tx.type === "refund" || tx.type === "expense")
+      .reduce((acc, tx) => acc + tx.amount, 0);
+
+    return {
+      balance: totalIn - totalOut,
+      totalIn,
+      totalOut,
+      cashierCount: cashiers.length
+    }
+  }, [allTransactions, cashiers])
+
+  // --- CASHIER MANAGEMENT HANDLERS ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    
-    if (!formData.name.trim() || !formData.email.trim() || !formData.password.trim()) {
-      setIsLoading(false)
-      return openError('All fields are required')
-    }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setIsLoading(false)
-      return openError('Please enter a valid email address')
-    }
-    if (cashiers.some((c) => c.email === formData.email.trim())) {
-      setIsLoading(false)
-      return openError('A cashier with this email already exists')
-    }
+    e.preventDefault();
+    setIsLoading(true);
+    const token = localStorage.getItem("adminToken");
+    if (!token) return openError("Authentication error. Please log in again.");
 
     try {
-      const res = await fetch(`${API_BASE}/api/cashier`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })
-      const body = await res.json()
-      if (!res.ok) throw new Error(body.message || 'Failed to add cashier')
+        const res = await fetch(`${API_BASE}/api/cashier`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(formData),
+        });
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.message || 'Failed to add cashier');
 
-      openSuccess('Cashier added successfully!')
-      setFormData({ name: '', email: '', password: '' })
-      setIsAddingCashier(false)
-      fetchCashiers()
+        openSuccess('Cashier added successfully!');
+        setFormData({ name: '', email: '', password: '' });
+        setIsAddingCashier(false);
+        fetchAllData(token); // Refresh all data
     } catch (err: any) {
-      openError(err.message || 'Failed to add cashier')
+        openError(err.message);
     } finally {
-      setIsLoading(false)
+        setIsLoading(false);
     }
   }
 
   const confirmDelete = (id: string) => {
-    setPendingDeleteId(id)
-    setDeleteOpen(true)
+    setPendingDeleteId(id);
+    setDeleteOpen(true);
   }
 
   const handleDelete = async () => {
-    if (!pendingDeleteId) return
-    try {
-      const res = await fetch(`${API_BASE}/api/cashier/${pendingDeleteId}`, { method: 'DELETE' })
-      const body = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(body.message || 'Failed to delete cashier')
+    if (!pendingDeleteId) return;
+    const token = localStorage.getItem("adminToken");
+    if (!token) return openError("Authentication error. Please log in again.");
 
-      openSuccess('Cashier removed successfully')
-      setCashiers((prev) => prev.filter((c) => c.id !== pendingDeleteId))
+    try {
+        const res = await fetch(`${API_BASE}/api/cashier/${pendingDeleteId}`, { 
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error('Failed to delete cashier');
+
+        openSuccess('Cashier removed successfully');
+        setCashiers(prev => prev.filter(c => c.id !== pendingDeleteId));
     } catch (err: any) {
-      openError(err.message || 'Failed to delete cashier')
+        openError(err.message);
     } finally {
-      setPendingDeleteId(null)
-      setDeleteOpen(false)
+        setPendingDeleteId(null);
+        setDeleteOpen(false);
     }
   }
 
+  // --- MODAL UTILITIES ---
+  const openError = (msg: string) => { setErrorMsg(msg); setErrorOpen(true); }
+  const openSuccess = (msg: string) => { setSuccessMsg(msg); setSuccessOpen(true); }
+  
+  // --- RENDER LOGIC ---
+  if (isFetching && !cashiers.length) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-blue-600 dark:text-blue-400" />
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid gap-8">
-         
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-slate-300">
+        <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
                 <div>
-                  <CardTitle>Cashier Management</CardTitle>
-                  <CardDescription>Add new cashiers to the system</CardDescription>
+                    <h1 className="text-3xl font-bold text-gray-800 dark:text-slate-50">Admin Dashboard</h1>
+                    <p className="text-md text-gray-500 dark:text-slate-400">Overall business performance and cashier management.</p>
                 </div>
-                <Button onClick={() => setIsAddingCashier((v) => !v)}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  {isAddingCashier ? 'Cancel' : 'Add Cashier'}
+                <Button onClick={handleLogout} variant="outline" className="mt-4 sm:mt-0 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
                 </Button>
               </div>
             </CardHeader>
@@ -319,4 +351,46 @@ export default function AdminDashboardPage() {
       </AlertDialog>
     </div>
   )
+}
+
+// --- SUB-COMPONENTS ---
+function StatCard({ icon: Icon, title, value, color }: { icon: React.ElementType, title: string, value: string, color: string }) {
+    return (
+        <Card className="shadow-sm bg-white dark:bg-slate-800 dark:border-slate-700">
+            <CardContent className="p-6 flex items-center">
+                <div className={`p-3 rounded-full bg-gray-100 dark:bg-slate-700 mr-4 ${color}`}>
+                    <Icon className="h-6 w-6" />
+                </div>
+                <div>
+                    <p className="text-sm font-medium text-gray-500 dark:text-slate-400">{title}</p>
+                    <p className="text-2xl font-semibold text-gray-800 dark:text-slate-50">{value}</p>
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+
+function TransactionItem({ tx }: { tx: Transaction }) {
+    const isOutflow = tx.type === "refund" || tx.type === "expense";
+    return (
+        <div className="border dark:border-slate-700 p-4 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div className="flex items-center mb-2 sm:mb-0">
+                <div className={`p-2 rounded-full mr-3 ${isOutflow ? 'bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-500' : 'bg-green-100 text-green-600 dark:bg-green-900/50 dark:text-green-400'}`}>
+                    {isOutflow ? <TrendingDown className="w-5 h-5" /> : <TrendingUp className="w-5 h-5" />}
+                </div>
+                <div>
+                    <p className="font-semibold text-gray-800 dark:text-slate-50">{tx.description}</p>
+                    <div className="flex items-center flex-wrap gap-x-4 text-sm text-gray-500 dark:text-slate-400">
+                        <Badge variant="secondary" className="capitalize dark:bg-slate-600 dark:text-slate-300">{tx.cashier_name}</Badge>
+                        <Badge variant="outline" className="capitalize dark:border-slate-600 dark:text-slate-400">{tx.type}</Badge>
+                    </div>
+                </div>
+            </div>
+            <div className="flex items-center gap-4 mt-2 sm:mt-0 self-end sm:self-center">
+                <p className={`font-semibold text-lg ${isOutflow ? 'text-red-600 dark:text-red-500' : 'text-green-600 dark:text-green-400'}`}>
+                    {isOutflow ? '-' : '+'} {formatCurrency(tx.amount)}
+                </p>
+            </div>
+        </div>
+    )
 }
