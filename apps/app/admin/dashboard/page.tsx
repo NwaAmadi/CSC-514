@@ -222,8 +222,6 @@ export default function AdminDashboardPage() {
               </CardContent>
             )}
           </Card>
-
-        
           <Card>
             <CardHeader>
               <CardTitle>Registered Cashiers</CardTitle>
@@ -270,7 +268,6 @@ export default function AdminDashboardPage() {
           </Card>
         </div>
       </main>
-
       
       <Dialog open={successOpen} onOpenChange={setSuccessOpen}>
         <DialogContent className="sm:max-w-md">
@@ -287,7 +284,6 @@ export default function AdminDashboardPage() {
         </DialogContent>
       </Dialog>
 
-      
       <Dialog open={errorOpen} onOpenChange={setErrorOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -305,7 +301,6 @@ export default function AdminDashboardPage() {
         </DialogContent>
       </Dialog>
 
-     
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

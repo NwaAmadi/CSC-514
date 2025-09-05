@@ -91,7 +91,6 @@ export default function CashierLoginPage() {
                 </div>
               </div>
 
-              
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
@@ -115,7 +114,6 @@ export default function CashierLoginPage() {
                 </Alert>
               )}
 
-             
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <div className="flex items-center justify-center space-x-2">
