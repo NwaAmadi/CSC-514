@@ -32,9 +32,13 @@ export default function AdminLoginPage() {
       })
 
       const data = await res.json()
+
       if (!res.ok) throw new Error(data.message || 'Login failed')
-  
+
+     
       localStorage.setItem('adminToken', data.token)
+
+      
       router.push('/admin/dashboard')
     } catch (err: any) {
       setError(err.message)
@@ -87,6 +91,7 @@ export default function AdminLoginPage() {
                 </div>
               </div>
 
+              
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
                 <div className="relative">
@@ -104,12 +109,14 @@ export default function AdminLoginPage() {
                 </div>
               </div>
 
+              
               {error && (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
 
+             
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? (
                   <div className="flex items-center justify-center space-x-2">
@@ -120,7 +127,8 @@ export default function AdminLoginPage() {
                   'Sign In'
                 )}
               </Button>
-            </form> 
+            </form>
+
             
             {/*<div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{' '}

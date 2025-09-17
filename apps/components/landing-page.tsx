@@ -6,8 +6,8 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-14 flex items-center">
         <Link className="flex items-center justify-center" href="#">
-          <MountainIcon className="h-6 w-6" />
-          <span className="sr-only">Office Accounting Systems</span>
+          <ShieldIcon className="h-6 w-6" />
+          <span className="sr-only">Office Accounting</span>
         </Link>
         <nav className="ml-auto flex gap-4 sm:gap-6">
           <Link className="text-sm font-medium hover:underline underline-offset-4" href="/home">
@@ -21,7 +21,7 @@ export default function LandingPage() {
             <div className="flex flex-col items-center space-y-4 text-center">
               <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                  Welcome to Office Accounting Systems
+                  Welcome to Office Accounting
                 </h1>
                 <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl dark:text-gray-400">
                   The all-in-one solution for managing your office finances. Secure, reliable, and easy to use.
@@ -40,7 +40,7 @@ export default function LandingPage() {
         </section>
       </main>
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-gray-500 dark:text-gray-400">© 2024 Office Accounting Systems. All rights reserved.</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">© 2024 Office Accounting. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link className="text-xs hover:underline underline-offset-4" href="#">
             Terms of Service
@@ -54,7 +54,7 @@ export default function LandingPage() {
   )
 }
 
-function MountainIcon(props: any) {
+function ShieldIcon(props: any) {
   return (
     <svg
       {...props}
@@ -68,7 +68,7 @@ function MountainIcon(props: any) {
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="m8 3 4 8 5-5 5 15H2L8 3z" />
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
     </svg>
   )
 }

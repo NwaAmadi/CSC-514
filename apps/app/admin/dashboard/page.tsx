@@ -10,7 +10,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 
-// --- TYPE DEFINITIONS ---
 interface Cashier {
   id: string
   name: string
@@ -26,12 +25,11 @@ interface Transaction {
   created_at: string
 }
 
-// --- HELPER FUNCTIONS ---
+
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'NGN' }).format(amount);
 }
 
-// --- MAIN COMPONENT ---
 export default function AdminDashboardPage() {
   const [cashiers, setCashiers] = useState<Cashier[]>([])
   const [allTransactions, setAllTransactions] = useState<Transaction[]>([])
@@ -89,7 +87,6 @@ export default function AdminDashboardPage() {
     window.location.href = "/admin/login";
   }
 
-  // --- STATS CALCULATION ---
   const stats = useMemo(() => {
     const totalIn = allTransactions
       .filter(tx => tx.type === "sale" || tx.type === "income")
@@ -107,7 +104,6 @@ export default function AdminDashboardPage() {
     }
   }, [allTransactions, cashiers])
 
-  // --- CASHIER MANAGEMENT HANDLERS ---
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
   }
@@ -130,7 +126,7 @@ export default function AdminDashboardPage() {
         openSuccess('Cashier added successfully!');
         setFormData({ name: '', email: '', password: '' });
         setIsAddingCashier(false);
-        fetchAllData(token); // Refresh all data
+        fetchAllData(token); 
     } catch (err: any) {
         openError(err.message);
     } finally {
@@ -165,11 +161,9 @@ export default function AdminDashboardPage() {
     }
   }
 
-  // --- MODAL UTILITIES ---
   const openError = (msg: string) => { setErrorMsg(msg); setErrorOpen(true); }
   const openSuccess = (msg: string) => { setSuccessMsg(msg); setSuccessOpen(true); }
   
-  // --- RENDER LOGIC ---
   if (isFetching && !cashiers.length) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-slate-900 flex items-center justify-center">
@@ -191,164 +185,128 @@ export default function AdminDashboardPage() {
                     <LogOut className="w-4 h-4 mr-2" />
                     Logout
                 </Button>
-              </div>
-            </CardHeader>
+            </header>
 
-            {isAddingCashier && (
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Cashier Name</Label>
-                      <Input
-                        id="name"
-                        name="name"
-                        placeholder="Enter full name"
-                        value={formData.name}
-                        onChange={handleInputChange}
-                        disabled={isLoading}
-                        required
-                      />
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <StatCard icon={DollarSign} title="Net Balance" value={formatCurrency(stats.balance)} color="text-blue-600 dark:text-blue-400" />
+                <StatCard icon={TrendingUp} title="Total Inflow" value={formatCurrency(stats.totalIn)} color="text-green-600 dark:text-green-400" />
+                <StatCard icon={TrendingDown} title="Total Outflow" value={formatCurrency(stats.totalOut)} color="text-red-600 dark:text-red-500" />
+                <StatCard icon={Users} title="Total Cashiers" value={stats.cashierCount.toString()} color="text-purple-600 dark:text-purple-400" />
+            </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email Address</Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter email address"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        disabled={isLoading}
-                        required
-                      />
-                    </div>
-                  </div>
+            <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <aside className="lg:col-span-1 space-y-8">
+                    <Card className="shadow-sm bg-white dark:bg-slate-800 dark:border-slate-700">
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle className="text-xl text-gray-900 dark:text-slate-100">Manage Cashiers</CardTitle>
+                                <CardDescription className="dark:text-slate-400">Add or remove cashiers</CardDescription>
+                            </div>
+                            <Button size="sm" onClick={() => setIsAddingCashier(v => !v)}>
+                                <Plus className="w-4 h-4 mr-2" />
+                                {isAddingCashier ? 'Cancel' : 'Add New'}
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            {isAddingCashier && (
+                                <form onSubmit={handleSubmit} className="space-y-4 pt-4 border-t dark:border-slate-700">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="name" className="dark:text-slate-400">Cashier Name</Label>
+                                        <Input id="name" name="name" placeholder="Full name" value={formData.name} onChange={handleInputChange} disabled={isLoading} required className="dark:bg-slate-700 dark:border-slate-600"/>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email" className="dark:text-slate-400">Email Address</Label>
+                                        <Input id="email" name="email" type="email" placeholder="email@example.com" value={formData.email} onChange={handleInputChange} disabled={isLoading} required className="dark:bg-slate-700 dark:border-slate-600"/>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password" className="dark:text-slate-400">Password</Label>
+                                        <Input id="password" name="password" type="password" placeholder="Create a password" value={formData.password} onChange={handleInputChange} disabled={isLoading} required className="dark:bg-slate-700 dark:border-slate-600"/>
+                                    </div>
+                                    <Button type="submit" disabled={isLoading} className="w-full dark:bg-slate-50 dark:text-slate-900 dark:hover:bg-slate-200">
+                                        {isLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin"/> : null}
+                                        {isLoading ? 'Creating...' : 'Create Cashier'}
+                                    </Button>
+                                </form>
+                            )}
 
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      placeholder="Enter password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      disabled={isLoading}
-                      required
-                    />
-                  </div>
-
-                  <Button type="submit" disabled={isLoading} className="w-full">
-                    {isLoading ? (
-                      <span className="inline-flex items-center justify-center">
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Adding Cashier...
-                      </span>
-                    ) : (
-                      'Add Cashier'
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            )}
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Registered Cashiers</CardTitle>
-              <CardDescription>View all cashiers in the system</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isFetching ? (
-                <div className="flex justify-center items-center py-8 text-muted-foreground">
-                  <Loader2 className="w-6 h-6 animate-spin mr-2" />
-                  Loading cashiers...
-                </div>
-              ) : cashiers.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No cashiers registered yet</p>
-                  <p className="text-sm">Add your first cashier to get started</p>
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  {cashiers.map((cashier) => (
-                    <div key={cashier.id} className="border rounded-lg p-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="font-semibold">{cashier.name}</h3>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <Mail className="w-4 h-4" />
-                            {cashier.email}
-                          </div>
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="icon"
-                          onClick={() => confirmDelete(cashier.id)}
-                          aria-label={`Delete ${cashier.name}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                            <div className="space-y-4 mt-6">
+                                {isFetching && <div className="text-center dark:text-slate-500">Loading list...</div>}
+                                {!isFetching && cashiers.length === 0 && <p className="text-center text-sm text-gray-500 dark:text-slate-500 py-4">No cashiers found.</p>}
+                                {cashiers.map(cashier => (
+                                    <div key={cashier.id} className="border dark:border-slate-700 rounded-lg p-3 flex items-center justify-between">
+                                        <div>
+                                            <h3 className="font-semibold dark:text-slate-200">{cashier.name}</h3>
+                                            <p className="text-sm text-muted-foreground dark:text-slate-400">{cashier.email}</p>
+                                        </div>
+                                        <Button variant="ghost" size="icon" onClick={() => confirmDelete(cashier.id)} className="text-gray-400 hover:text-red-500 dark:text-slate-500 dark:hover:text-red-500">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </aside>
+                
+                <section className="lg:col-span-2">
+                    <Card className="shadow-sm bg-white dark:bg-slate-800 dark:border-slate-700">
+                        <CardHeader>
+                            <CardTitle className="text-xl text-gray-900 dark:text-slate-100">Global Transaction History</CardTitle>
+                            <CardDescription className="dark:text-slate-400">A log of all financial activities from all cashiers.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {isFetching ? <div className="text-center py-8 dark:text-slate-400">Loading transactions...</div>
+                            : allTransactions.length === 0 ? (
+                                <div className="text-center py-8 text-gray-500 dark:text-slate-500">
+                                    <Receipt className="mx-auto h-12 w-12 text-gray-400 dark:text-slate-600" />
+                                    <p className="mt-2">No transactions recorded yet.</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+                                    {allTransactions.map(tx => <TransactionItem key={tx.id} tx={tx} />)}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </section>
+            </main>
         </div>
-      </main>
-      
-      <Dialog open={successOpen} onOpenChange={setSuccessOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5" />
-              Success
-            </DialogTitle>
-            <DialogDescription>{successMsg}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button onClick={() => setSuccessOpen(false)}>OK</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      <Dialog open={errorOpen} onOpenChange={setErrorOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <XCircle className="w-5 h-5" />
-              Error
-            </DialogTitle>
-            <DialogDescription>{errorMsg}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="destructive" onClick={() => setErrorOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete cashier?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently remove the cashier account.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPendingDeleteId(null)}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        
+        <Dialog open={successOpen} onOpenChange={setSuccessOpen}>
+            <DialogContent className="dark:bg-slate-800 dark:border-slate-700">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-green-600 dark:text-green-400"><CheckCircle2/>Success</DialogTitle>
+                    <DialogDescription className="dark:text-slate-400">{successMsg}</DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <Button onClick={() => setSuccessOpen(false)}>OK</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        <Dialog open={errorOpen} onOpenChange={setErrorOpen}>
+            <DialogContent className="dark:bg-slate-800 dark:border-slate-700">
+                <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-red-600 dark:text-red-500"><XCircle/>Error</DialogTitle>
+                    <DialogDescription className="dark:text-slate-400">{errorMsg}</DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <Button variant="destructive" onClick={() => setErrorOpen(false)}>Close</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+        <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+            <AlertDialogContent className="dark:bg-slate-800 dark:border-slate-700">
+                <AlertDialogHeader>
+                    <AlertDialogTitle className="dark:text-slate-100">Delete cashier?</AlertDialogTitle>
+                    <AlertDialogDescription className="dark:text-slate-400">This action cannot be undone. This will permanently remove the cashier account.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                    <AlertDialogCancel className="dark:bg-slate-700 dark:border-slate-600 dark:hover:bg-slate-600">Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+        </AlertDialog>
     </div>
   )
 }

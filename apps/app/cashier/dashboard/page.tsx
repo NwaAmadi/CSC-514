@@ -145,6 +145,7 @@ export default function CashierDashboardPage() {
       setSubmitting(false)
     }
   }
+
   const handleDelete = async (id: string) => {
     if (!cashier || !confirm("Are you sure you want to delete this transaction?")) return;
     try {
@@ -159,6 +160,7 @@ export default function CashierDashboardPage() {
       setError(err.message)
     }
   }
+
   const handleLogout = () => {
     localStorage.removeItem("cashier");
     localStorage.removeItem("cashierToken");
@@ -173,6 +175,7 @@ export default function CashierDashboardPage() {
       </div>
     )
   }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-800 dark:text-slate-300"> {/* Dark mode page background and default text */}
       <div className="container mx-auto p-4 sm:p-6 lg:p-8">
@@ -195,6 +198,7 @@ export default function CashierDashboardPage() {
         </div>
 
         <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
           <aside className="lg:col-span-1">
             <Card className="shadow-sm bg-white dark:bg-slate-800 dark:border-slate-700"> {/* Dark mode card styles */}
               <CardHeader>
